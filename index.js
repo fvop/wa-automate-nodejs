@@ -1,11 +1,15 @@
 const fs = require('fs');
 const wa = require('@open-wa/wa-automate');
 
-const sessionPath = './session.data.json';
+const sessionPath = '/app/storage/session.data.json';
 
 let sessionData = null;
 if (fs.existsSync(sessionPath)) {
-  sessionData = require(sessionPath);
+  try {
+    sessionData = JSON.parse(fs.readFileSync(sessionPath));
+  } catch (e) {
+    console.error('Ошибка при чтении session.data.json:', e);
+  }
 }
 
 wa.create({
@@ -18,15 +22,30 @@ wa.create({
   headless: true,
   logConsole: false,
   qrTimeout: 0,
+
+  // 🔥 Включаем API для n8n
+  apiHost: '0.0.0.0',
+  customPort: 8080,
+  enableLocalhost: true,
+
+  // 💬 Вебхук на входящие (опционально)
+  // webhook: {
+  //   url: "https://n8n.yourdomain.com/webhook/whatsapp",
+  //   events: ['onMessage']
+  // }
 }).then(client => {
-  fs.writeFileSync(sessionPath, JSON.stringify(client.getSessionData()));
+  // Автосохранение сессии
+  client.getSessionData().then(data => {
+    fs.writeFileSync(sessionPath, JSON.stringify(data));
+  });
+
   start(client);
 });
 
 function start(client) {
   client.onMessage(async message => {
     if (message.body === 'Hi') {
-      await client.sendText(message.from, '👋 Привет!');
+      await client.sendText(message.from, '👋 Привет от OpenWA!');
     }
   });
 }
