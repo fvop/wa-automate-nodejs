@@ -185,8 +185,4 @@
   "overrides": {
     "uuid": "^9.0.0"
   }
-  "dependencies": {
-  "puppeteer-core": "^21.3.8",
-  "chrome-aws-lambda": "^10.1.0"
-}
 }
